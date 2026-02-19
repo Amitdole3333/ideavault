@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Environment and secrets (never commit)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Build and cache
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Database (local dev)
+*.db
+*.db-journal
+backend/dev.db
+
+# IDE and OS
+.DS_Store
+.idea/
+*.log
+*.pem
+
+# Testing and coverage
+coverage/
+.nyc_output/
+
+# Vercel / deployment
+.vercel
+
+# Contracts (AlgoKit)
+contracts/.venv/
+contracts/venv/

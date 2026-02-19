@@ -1,0 +1,86 @@
+// Prisma schema for IdeaVault
+// SQLite — enums replaced with String (SQLite doesn't support enum type)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String
+  role          String   @default("FOUNDER")   // "FOUNDER" | "INVESTOR"
+  walletAddress String?  @unique
+  bio           String?
+  company       String?
+  location      String?
+  linkedinUrl   String?
+  isVerified    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  ideas            Idea[]
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  shortlists       Shortlist[]
+}
+
+model Idea {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  category     String   // e.g. "FINTECH", "HEALTHTECH", etc.
+  stage        String   // "IDEA" | "MVP" | "EARLY_TRACTION" | "GROWTH" | "SCALING"
+  location     String?
+  fundingGoal  Float?
+  teamSize     Int?
+  pitchDeckUrl String?      // IPFS CID of uploaded document
+  visibility   String   @default("PUBLIC")  // "PUBLIC" | "PRIVATE" | "NDA_REQUIRED"
+
+  // Blockchain fields
+  ideaHash       String  @unique  // SHA-256 hash stored on-chain
+  txnId          String?          // Algorand transaction ID
+  appId          String?          // Algorand App ID
+  blockTimestamp Int?             // Unix timestamp from blockchain
+  ipfsCid        String?          // IPFS CID of full idea metadata JSON
+  isVerified     Boolean @default(false)
+
+  founderId String
+  founder   User   @relation(fields: [founderId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages   Message[]
+  shortlists Shortlist[]
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  content    String
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  ideaId     String
+  idea       Idea     @relation(fields: [ideaId], references: [id])
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Shortlist {
+  id         String   @id @default(uuid())
+  investorId String
+  investor   User     @relation(fields: [investorId], references: [id])
+  ideaId     String
+  idea       Idea     @relation(fields: [ideaId], references: [id])
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@unique([investorId, ideaId])
+}
