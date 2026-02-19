@@ -12,6 +12,7 @@ __pycache__/
 .env.local
 .env.*.local
 *.env
+RENDER_ENV_VARS.md
 
 # Build and cache
 .next/

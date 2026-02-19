@@ -1,13 +1,14 @@
 // Prisma schema for IdeaVault
-// SQLite — enums replaced with String (SQLite doesn't support enum type)
+// PostgreSQL (e.g. Neon) — enums kept as String for compatibility
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {

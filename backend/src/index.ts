@@ -30,6 +30,16 @@ app.use('/api/ideas', ideasRouter);
 app.use('/api/messages', messagesRouter);
 app.use('/api/health', healthRouter);
 
+// Root — for Render / platform health checks (must return 200)
+app.get('/', (_req, res) => {
+    res.status(200).json({
+        service: 'IdeaVault API',
+        status: 'ok',
+        health: '/health',
+        api: '/api',
+    });
+});
+
 // Health check
 app.get('/health', (_req, res) => {
     res.json({
@@ -50,11 +60,13 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
     res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-    console.log(`\n🚀 IdeaVault API running on port ${PORT}`);
+// Listen on 0.0.0.0 so Render / PaaS can reach the server
+const HOST = process.env.HOST || '0.0.0.0';
+app.listen(PORT, HOST, () => {
+    console.log(`\n🚀 IdeaVault API running on ${HOST}:${PORT}`);
     console.log(`   Network: ${process.env.ALGORAND_NETWORK || 'testnet'}`);
     console.log(`   App ID:  ${process.env.ALGORAND_APP_ID || 'not set'}`);
-    console.log(`   Health:  http://localhost:${PORT}/health\n`);
+    console.log(`   Health:  /health\n`);
 });
 
 export default app;

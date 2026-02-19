@@ -1,0 +1,26 @@
+# Render Blueprint — IdeaVault Backend
+# See: https://render.com/docs/blueprint-spec
+# Connect this repo in Render Dashboard; set env vars (DATABASE_URL, DIRECT_URL, JWT_SECRET, etc.) in Environment.
+
+services:
+  - type: web
+    name: ideavault-api
+    runtime: node
+
+    # Build from backend folder
+    rootDir: backend
+
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm start"
+
+    # Run Prisma schema push before each deploy (uses DIRECT_URL for Neon)
+    releaseCommand: "npx prisma db push --skip-generate"
+
+    # Health check path (Render pings this to confirm service is up)
+    healthCheckPath: /health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Add all other vars in Render Dashboard: DATABASE_URL, DIRECT_URL, JWT_SECRET,
+      # ALGORAND_APP_ID, ALGORAND_DEPLOYER_MNEMONIC, PINATA_*, FRONTEND_URL
