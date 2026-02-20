@@ -1,5 +1,6 @@
 # IdeaVault Backend — production Docker image
-FROM node:20-alpine
+# Use Debian slim (not Alpine): Prisma's engine needs libssl compatible with glibc; Alpine/musl + OpenSSL 3 causes "libssl.so.1.1: No such file".
+FROM node:20-slim
 
 WORKDIR /app
 
