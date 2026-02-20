@@ -151,9 +151,9 @@ export async function getIdeaFromChain(ideaHashHex: string): Promise<{
 export async function getTotalIdeasCount(): Promise<number> {
     try {
         const appInfo = await algodClient.getApplicationByID(APP_ID).do();
-        const globalState = appInfo.params['global-state'] as Array<{
+        const globalState = appInfo.params.globalState as unknown as Array<{
             key: string;
-            value: { type: number; uint: number };
+            value: { uint: number };
         }>;
 
         const totalEntry = globalState.find(

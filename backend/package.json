@@ -12,6 +12,8 @@
     "prisma:migrate": "prisma migrate dev"
   },
   "dependencies": {
+    "@pinata/sdk": "^2.1.0",
+    "@prisma/client": "^5.0.0",
     "algosdk": "^3.0.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -22,7 +24,6 @@
     "jsonwebtoken": "^9.0.0",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
-    "@prisma/client": "^5.0.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

@@ -3,7 +3,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import algosdk from 'algosdk';
+import algosdk, { Address } from 'algosdk';
+import pinataSDK from '@pinata/sdk';
 
 const router = Router();
 
@@ -80,7 +81,7 @@ async function testPinata(): Promise<{ status: string; error?: string; details?:
             };
         }
 
-        const result = await response.json();
+        const result = await response.json() as { IpfsHash: string };
         return {
             status: 'ok',
             details: {
@@ -124,16 +125,16 @@ async function testAlgorand(): Promise<{ status: string; error?: string; details
 
         // Test 2: Get app info and app address (if app ID is set)
         let appInfo = null;
-        let appAddress: string | null = null;
+        let appAddress: string | Address | null = null;
         let appBalanceWarning: string | null = null;
 
-        if (APP_ID > 0) {
-            appAddress = algosdk.getApplicationAddress(APP_ID);
+        if (APP_ID) {
+            appAddress = algosdk.getApplicationAddress(APP_ID) as Address;
             try {
                 appInfo = await algodClient.getApplicationByID(APP_ID).do();
                 const accountInfo = await algodClient.accountInformation(appAddress).do();
                 const balance = accountInfo.amount || 0;
-                const minBalance = accountInfo['min-balance'] || 100000; // 0.1 ALGO default
+                const minBalance = accountInfo.minBalance || 100000; // 0.1 ALGO default
                 if (balance < minBalance) {
                     appBalanceWarning = `App account needs funding: balance ${balance} below min ${minBalance}. Fund ${appAddress} at https://bank.testnet.algorand.network/`;
                 }
@@ -149,10 +150,10 @@ async function testAlgorand(): Promise<{ status: string; error?: string; details
             try {
                 const account = algosdk.mnemonicToSecretKey(mnemonic);
                 const deployerInfo = await algodClient.accountInformation(account.addr).do();
-                const balance = deployerInfo.amount || 0;
-                const minBalance = deployerInfo['min-balance'] || 100000;
+                const balance = Number(deployerInfo.amount || 0);
+                const minBalance = Number(deployerInfo.minBalance || 100000);
                 deployerAccount = {
-                    address: account.addr,
+                    address: account.addr.toString(),
                     balance,
                     minBalance,
                     needsFunding: balance < minBalance,
@@ -168,7 +169,7 @@ async function testAlgorand(): Promise<{ status: string; error?: string; details
             network: process.env.ALGORAND_NETWORK || 'testnet',
             appId: APP_ID,
             appAddress,
-            appExists: appInfo && !appInfo.error,
+            appExists: appInfo && !('error' in appInfo),
             deployerConfigured: !!hasDeployer,
             message: 'Algorand connection successful',
         };
@@ -263,6 +264,18 @@ router.get('/funding', (_req: Request, res: Response) => {
             deployerAccount: 'From your ALGORAND_DEPLOYER_MNEMONIC (fund via wallet address in Algorand explorer or use /api/health/check for deployer address)',
         },
     });
+});
+
+/**
+ * POST /api/health/upload — Upload a file to IPFS
+ */
+router.post('/upload', async (req, res) => {
+    const pinata = new pinataSDK(process.env.PINATA_API_KEY!, process.env.PINATA_SECRET_API_KEY!);
+
+    const result = await pinata.pinJSONToIPFS(req.body) as { IpfsHash: string };
+    const cid = result.IpfsHash;
+
+    res.json({ cid });
 });
 
 export default router;

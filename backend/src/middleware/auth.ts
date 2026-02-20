@@ -4,7 +4,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';  // bring in User
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
@@ -13,7 +13,8 @@ export interface AuthRequest extends Request {
     user?: {
         id: string;
         email: string;
-        role: Role;
+        // infer role type from Prisma's User model
+        role: User['role'];
         walletAddress?: string | null;
     };
 }
@@ -46,7 +47,7 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
 /**
  * Require specific role. Must be used after requireAuth.
  */
-export function requireRole(...roles: Role[]) {
+export function requireRole(...roles: Array<User['role']>) {   // use User['role']
     return (req: AuthRequest, res: Response, next: NextFunction) => {
         if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
         if (!roles.includes(req.user.role)) {
