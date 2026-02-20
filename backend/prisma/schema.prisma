@@ -1,6 +1,3 @@
-// Prisma schema for IdeaVault
-// PostgreSQL (e.g. Neon) — enums kept as String for compatibility
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,12 +8,39 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+//
+// ENUMS (Type-safe, fixes Role error)
+//
+
+enum Role {
+  FOUNDER
+  INVESTOR
+}
+
+enum IdeaStage {
+  IDEA
+  MVP
+  EARLY_TRACTION
+  GROWTH
+  SCALING
+}
+
+enum IdeaVisibility {
+  PUBLIC
+  PRIVATE
+  NDA_REQUIRED
+}
+
+//
+// MODELS
+//
+
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
   password      String
   name          String
-  role          String   @default("FOUNDER")   // "FOUNDER" | "INVESTOR"
+  role          Role     @default(FOUNDER)
   walletAddress String?  @unique
   bio           String?
   company       String?
@@ -33,23 +57,23 @@ model User {
 }
 
 model Idea {
-  id           String   @id @default(uuid())
+  id           String         @id @default(uuid())
   title        String
   description  String
-  category     String   // e.g. "FINTECH", "HEALTHTECH", etc.
-  stage        String   // "IDEA" | "MVP" | "EARLY_TRACTION" | "GROWTH" | "SCALING"
+  category     String
+  stage        IdeaStage
   location     String?
   fundingGoal  Float?
   teamSize     Int?
-  pitchDeckUrl String?      // IPFS CID of uploaded document
-  visibility   String   @default("PUBLIC")  // "PUBLIC" | "PRIVATE" | "NDA_REQUIRED"
+  pitchDeckUrl String?
+  visibility   IdeaVisibility @default(PUBLIC)
 
   // Blockchain fields
-  ideaHash       String  @unique  // SHA-256 hash stored on-chain
-  txnId          String?          // Algorand transaction ID
-  appId          String?          // Algorand App ID
-  blockTimestamp Int?             // Unix timestamp from blockchain
-  ipfsCid        String?          // IPFS CID of full idea metadata JSON
+  ideaHash       String  @unique
+  txnId          String?
+  appId          String?
+  blockTimestamp Int?
+  ipfsCid        String?
   isVerified     Boolean @default(false)
 
   founderId String

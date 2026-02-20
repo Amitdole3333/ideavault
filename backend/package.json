@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "IdeaVault Backend API — Node.js/Express with Algorand integration",
   "main": "dist/index.js",
+  "engines": { "node": ">=18" },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc && prisma generate",

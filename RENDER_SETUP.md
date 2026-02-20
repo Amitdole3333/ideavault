@@ -1,6 +1,6 @@
 # Deploy Backend on Render — Quick Setup
 
-After pushing this repo to GitHub, deploy the backend on Render.
+The backend is configured for Render (Node 20, Prisma + Neon, health check). After pushing this repo to GitHub, deploy as follows.
 
 ---
 
@@ -9,8 +9,8 @@ After pushing this repo to GitHub, deploy the backend on Render.
 1. Go to [dashboard.render.com](https://dashboard.render.com) → **New +** → **Web Service**.
 2. Connect your **GitHub** account and select the **ideavault** repo.
 3. **Name:** `ideavault-api` (or any name).
-4. **Root Directory:** `backend`.
-5. **Runtime:** Node.
+4. **Root Directory:** `backend` (required — app lives in this folder).
+5. **Runtime:** Node (Render will use Node 20 from `backend/.node-version`).
 6. **Build Command:** Type or paste exactly (use straight quotes only, no “smart” quotes):
    ```
    npm install && npm run build
@@ -35,7 +35,7 @@ In **Environment** → **Add Environment Variable**, add:
 | `JWT_SECRET` | *(generate a long random string for production)* |
 | `JWT_EXPIRES_IN` | `7d` |
 | `DATABASE_URL` | Your **Neon pooled** URL (with `-pooler` in host) |
-| `DIRECT_URL` | Your **Neon direct** URL (host *without* `-pooler`) |
+| `DIRECT_URL` | Your **Neon direct** URL (host *without* `-pooler`) — **required** for Prisma migrations / `db push` |
 | `ALGORAND_NETWORK` | `testnet` |
 | `ALGORAND_NODE_URL` | `https://testnet-api.algonode.cloud` |
 | `ALGORAND_INDEXER_URL` | `https://testnet-idx.algonode.cloud` |
@@ -73,3 +73,16 @@ Click **Create Web Service**. Render will:
 ## Optional: Use Blueprint (`render.yaml`)
 
 If you use **New +** → **Blueprint** and connect the repo, Render will read `render.yaml` and create the web service with the settings above. You still need to add all **Environment** variables in the Render dashboard.
+
+---
+
+## Backend “ready for Render” checklist
+
+- **Root:** `backend/` (monorepo)
+- **Node:** 20 (via `backend/.node-version` and `NODE_VERSION` in Blueprint)
+- **Build:** `npm install && npm run build` (includes `tsc` + `prisma generate`)
+- **Release:** `npx prisma db push --skip-generate` (Neon via `DIRECT_URL`)
+- **Start:** `npm start` → `node dist/index.js`
+- **Health:** `GET /health` and `GET /` return 200
+- **Listen:** `0.0.0.0` so Render can reach the server
+- **Prisma:** `directUrl` set in `schema.prisma` for Neon migrations

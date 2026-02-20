@@ -7,15 +7,15 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
-# Install dependencies (including Prisma for generate)
-RUN npm ci --omit=dev || npm install --omit=dev
+# Install all dependencies (devDependencies needed for tsc and prisma CLI)
+RUN npm ci || npm install
 
-# Generate Prisma client
-RUN npx prisma generate
-
-# Copy source and build
+# Copy source and build (tsc + prisma generate)
 COPY . .
 RUN npm run build
+
+# Remove devDependencies to keep image smaller
+RUN npm prune --production
 
 ENV NODE_ENV=production
 EXPOSE 3001
